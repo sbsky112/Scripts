@@ -27,7 +27,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/qBittorrent-AutoIns
 ```
 
 ---
-## 📦 一键卸载命令
+## 🗑️ 一键卸载命令
 
 请使用以下命令一键卸载：
 
@@ -37,3 +37,12 @@ bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/qBittorrent-AutoIns
 
 ---
 
+## 👀 查看账号密码
+
+请使用以下命令一键查看：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/qBittorrent-AutoInstall/refs/heads/main/view_qbt_password.sh)
+```
+
+---
