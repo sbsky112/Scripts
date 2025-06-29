@@ -23,4 +23,4 @@
 请使用以下命令一键安装：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/Scripts/refs/heads/main/install_qbittorrent.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/qBittorrent-AutoInstall/refs/heads/main/install_qbittorrent.sh)
