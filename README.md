@@ -24,3 +24,16 @@
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/qBittorrent-AutoInstall/refs/heads/main/install_qbittorrent.sh)
+```
+
+---
+## 📦 一键卸载命令
+
+请使用以下命令一键卸载：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/sbsky112/qBittorrent-AutoInstall/refs/heads/main/uninstall_qbittorrent.sh)
+```
+
+---
+
