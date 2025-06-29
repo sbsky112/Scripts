@@ -2,59 +2,83 @@
 set -e
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "请用 root 用户运行"
+  echo "请用 root 用户运行此脚本"
   exit 1
 fi
 
+echo "更新软件包列表..."
 apt update
-apt install -y qbittorrent-nox expect
 
-mkdir -p /root/Downloads
-chown root:root /root/Downloads
+echo "安装qBittorrent-nox..."
+apt install -y qbittorrent-nox
 
-cat >/etc/systemd/system/qbittorrent.service <<EOF
+CONFIG_DIR="/root/.config/qBittorrent"
+CONFIG_FILE="$CONFIG_DIR/qBittorrent.conf"
+DOWNLOAD_DIR="/root/Downloads"
+
+mkdir -p "$CONFIG_DIR"
+mkdir -p "$DOWNLOAD_DIR"
+
+echo "写入配置文件..."
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  cat > "$CONFIG_FILE" <<EOF
+[Preferences]
+EOF
+fi
+
+cp "$CONFIG_FILE" "$CONFIG_FILE.bak.$(date +%s)" 2>/dev/null || true
+
+function set_config() {
+  local key="$1"
+  local value="$2"
+  if grep -q "^$key=" "$CONFIG_FILE"; then
+    sed -i "s|^$key=.*|$key=$value|" "$CONFIG_FILE"
+  else
+    echo "$key=$value" >> "$CONFIG_FILE"
+  fi
+}
+
+set_config "WebUI\CSRFProtection" "false"
+set_config "Downloads\SavePath" "$DOWNLOAD_DIR"
+
+SERVICE_FILE="/etc/systemd/system/qbittorrent-nox.service"
+echo "创建 systemd 服务文件 $SERVICE_FILE"
+
+cat > "$SERVICE_FILE" <<EOF
 [Unit]
-Description=qBittorrent-nox Service
+Description=qBittorrent-nox daemon
 After=network.target
 
 [Service]
 User=root
 ExecStart=/usr/bin/qbittorrent-nox
 Restart=on-failure
+RestartSec=10
+KillMode=process
+TimeoutStopSec=30
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable qbittorrent
+systemctl enable qbittorrent-nox
+systemctl restart qbittorrent-nox
 
-rm -rf /root/.config/qBittorrent
+echo "等待 qBittorrent-nox 启动并生成 Web UI 密码..."
+sleep 6
 
-expect -c "
-spawn qbittorrent-nox
-expect \"Do you want to start the Web UI? (y/n)\"
-send \"y\r\"
-expect \"Set Web UI username:\"
-send \"admin\r\"
-expect \"Set Web UI password:\"
-send \"qwe123456\r\"
-expect \"Confirm Web UI password:\"
-send \"qwe123456\r\"
-expect eof
-"
+# 从 journalctl 里提取密码
+PASSWORD_LINE=$(journalctl -u qbittorrent-nox -n 50 --no-pager | grep -i "Web UI password:" | tail -1)
 
-pkill qbittorrent-nox || true
+if [[ $PASSWORD_LINE =~ Web\ UI\ password:\ (.+)$ ]]; then
+  PASSWORD="${BASH_REMATCH[1]}"
+  echo "qBittorrent-nox Web UI 随机密码是： $PASSWORD"
+  echo "请使用 http://服务器IP:8080 访问，默认用户名 admin"
+else
+  echo "未能自动获取 Web UI 密码，请用以下命令查看日志："
+  echo "journalctl -u qbittorrent-nox -n 50 --no-pager"
+fi
 
-systemctl start qbittorrent
-
-IP=$(hostname -I | awk '{print $1}')
-
-echo ""
-echo "======================================="
-echo "qBittorrent 安装并配置完成！"
-echo "Web UI 地址: http://$IP:8080"
-echo "用户名：admin"
-echo "密码：qwe123456"
-echo "下载目录：/root/Downloads"
-echo "======================================="
+echo "服务管理命令: systemctl {start|stop|restart|status} qbittorrent-nox"
