@@ -39,7 +39,9 @@ function set_config() {
   fi
 }
 
+# 关闭防跨站功能
 set_config "WebUI\CSRFProtection" "false"
+# 设置默认下载目录
 set_config "Downloads\SavePath" "$DOWNLOAD_DIR"
 
 SERVICE_FILE="/etc/systemd/system/qbittorrent-nox.service"
@@ -69,10 +71,9 @@ systemctl restart qbittorrent-nox
 echo "等待 qBittorrent-nox 启动并生成 Web UI 密码..."
 sleep 6
 
-# 从 journalctl 里提取密码
-PASSWORD_LINE=$(journalctl -u qbittorrent-nox -n 50 --no-pager | grep -i "Web UI password:" | tail -1)
+PASSWORD_LINE=$(journalctl -u qbittorrent-nox -n 50 --no-pager | grep "temporary password is provided for this session" | tail -1)
 
-if [[ $PASSWORD_LINE =~ Web\ UI\ password:\ (.+)$ ]]; then
+if [[ $PASSWORD_LINE =~ session:\ ([^[:space:]]+) ]]; then
   PASSWORD="${BASH_REMATCH[1]}"
   echo "qBittorrent-nox Web UI 随机密码是： $PASSWORD"
   echo "请使用 http://服务器IP:8080 访问，默认用户名 admin"
