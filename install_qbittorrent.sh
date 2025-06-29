@@ -52,7 +52,7 @@ Connection\PortRangeMin=6881
 Downloads\SavePath=/root/Downloads/
 WebUI\Port=8080
 WebUI\Username=admin
-WebUI\Password_ha1=@ByteArray(4850734fbd9e43b173aeb06c79b0572b)
+WebUI\Password_PBKDF2=@ByteArray(FtoLUH9CWxuBvMhRZjJKFSDYto9F65v9D8mQNZmS3LrF5HwlUspKwR4q9F1v16PXa)
 WebUI\CSRFProtection=false
 WebUI\ClickjackingProtection=false
 EOF
